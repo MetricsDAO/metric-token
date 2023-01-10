@@ -6,7 +6,6 @@ pragma solidity ^0.8.17;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @dev DAO Operations dependencies.
-import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import {ERC20VotesTimestamp} from "./extensions/ERC20VotesTimestamp.sol";
 
 /// @dev Traversal dependencies.
@@ -23,8 +22,6 @@ import {ILayerZeroEndpoint} from "./interfaces/ILayerZeroEndpoint.sol";
  * @author @nftchance*
  */
 contract MetricToken is
-    ERC20,
-    ERC20Permit,
     ERC20VotesTimestamp,
     NonBlockingReceiver
 {
@@ -59,7 +56,6 @@ contract MetricToken is
         /// @dev Initialize all the dependencies
         ERC20(_name, _symbol)
         ERC20Permit(_name)
-        ERC20VotesTimestamp(_psuedonymBound)
     {
         /// @dev Mint the total supply of tokens to the deployer.
         _mint(_msgSender(), maxSupply);

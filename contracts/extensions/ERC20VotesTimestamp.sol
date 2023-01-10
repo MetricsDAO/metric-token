@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (token/ERC20/extensions/ERC20Votes.sol)
 
 pragma solidity ^0.8.0;
 
@@ -13,19 +12,17 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
+ * @title ERC20VotesTimestamp
  * @dev Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
- * and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
- *
- * NOTE: If exact COMP compatibility is required, use the {ERC20VotesComp} variant of this module.
- *
- * This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either
- * by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Voting
- * power can be queried through the public accessors {getVotes} and {getPastVotes}.
- *
- * By default, token balance does not account for voting power. This makes transfers cheaper. The downside is that it
- * requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
- *
- * _Available since v4.2._
+ *      and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
+ * @dev This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either by calling 
+ *         the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Voting power can be queried through 
+ *         the public accessors {getVotes} and {getPastVotes}. By default, token balance does not account for voting power. This makes transfers 
+ *         cheaper. The downside is that it requires users to delegate to themselves in order to activate checkpoints and have 
+ *         their voting power tracked.
+ * @notice This contract is a forked version of OpenZeppelins ERC20Votes contract, first modified by JokeDAO, and then again modified here
+ *         for final clean-up. This implementation utilizes timestamps instead of blocks due to $METRIC being an omni-chain token.
+ * @author @seanmc9* // @nftchance+
  */
 abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
     struct Checkpoint {
