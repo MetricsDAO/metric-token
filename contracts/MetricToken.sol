@@ -48,7 +48,7 @@ contract MetricToken is
 
     ////////////////////////////////////////////////////
     ///                 CONSTRUCTOR                  ///
-    ////////////////////////////////////////////////////
+    ////////////////////¡¡////////////////////////////////
 
     constructor(
         string memory _name,
@@ -143,7 +143,7 @@ contract MetricToken is
      * @param _chainId The chainId of the chain to add to the protocol.
      * @param _orbit The address of the chain to add to the protocol.
      */
-    function setTrustedRemote(uint16 _chainId, bytes calldata _orbit)
+    function setOrbit(uint16 _chainId, bytes calldata _orbit)
         external
         onlyOwner
     {
