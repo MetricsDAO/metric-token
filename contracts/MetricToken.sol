@@ -116,7 +116,7 @@ contract MetricToken is
         _lzSend(
             _chainId,
             payload,
-            payable(msg.sender),
+            payable(_msgSender()),
             layerZeroPayment,
             adapterParams
         );
