@@ -178,7 +178,7 @@ contract MetricToken is
         address to,
         uint256 amount
     ) internal override(ERC20, ERC20VotesTimestamp) {
-        super._beforeTokenTransfer(from, to, amount);
+        ERC20VotesTimestamp._beforeTokenTransfer(from, to, amount);
     }
 
     /**
@@ -189,7 +189,7 @@ contract MetricToken is
         address to,
         uint256 amount
     ) internal override(ERC20, ERC20VotesTimestamp) {
-        super._afterTokenTransfer(from, to, amount);
+        ERC20VotesTimestamp._afterTokenTransfer(from, to, amount);
     }
 
     /**
@@ -199,7 +199,7 @@ contract MetricToken is
         internal
         override(ERC20, ERC20VotesTimestamp)
     {
-        super._mint(to, amount);
+        ERC20VotesTimestamp._mint(to, amount);
     }
 
     /**
@@ -209,6 +209,6 @@ contract MetricToken is
         internal
         override(ERC20, ERC20VotesTimestamp)
     {
-        super._burn(account, amount);
+        ERC20VotesTimestamp._burn(account, amount);
     }
 }
