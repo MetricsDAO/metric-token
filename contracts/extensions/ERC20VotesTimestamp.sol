@@ -40,40 +40,53 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
     mapping(address => Checkpoint[]) private _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
 
-    address public _minter;
-    bool public _nontransferable;
-
-    constructor(bool nontransferable_) {
-        _nontransferable = nontransferable_;
-    }
-
     /**
      * @dev Get the `pos`-th checkpoint for `account`.
      */
-    function checkpoints(address account, uint32 pos) public view virtual returns (Checkpoint memory) {
+    function checkpoints(address account, uint32 pos)
+        public
+        view
+        virtual
+        returns (Checkpoint memory)
+    {
         return _checkpoints[account][pos];
     }
 
     /**
      * @dev Get number of checkpoints for `account`.
      */
-    function numCheckpoints(address account) public view virtual returns (uint32) {
+    function numCheckpoints(address account)
+        public
+        view
+        virtual
+        returns (uint32)
+    {
         return SafeCast.toUint32(_checkpoints[account].length);
     }
 
     /**
      * @dev Get the address `account` is currently delegating to.
-     *
-     * If someone hasn't delegated, then they are their own delegate
      */
-    function delegates(address account) public view virtual override returns (address) {
-        return _delegates[account] != address(0) ? _delegates[account] : account;
+    function delegates(address account)
+        public
+        view
+        virtual
+        override
+        returns (address)
+    {
+        return _delegates[account];
     }
 
     /**
      * @dev Gets the current votes balance for `account`
      */
-    function getVotes(address account) public view virtual override returns (uint256) {
+    function getVotes(address account)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         uint256 pos = _checkpoints[account].length;
         return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
     }
@@ -82,32 +95,51 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
      * @dev Retrieve the number of votes for `account` at the end of `timestamp`.
      *
      * Requirements:
-     *
      * - the block with the timestamp `timestamp` must have been already mined
      */
-    function getPastVotes(address account, uint256 timestamp) public view virtual override returns (uint256) {
-        require(timestamp < block.timestamp, "ERC20VotesTimestamp: block not yet mined");
+    function getPastVotes(address account, uint256 timestamp)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        require(
+            timestamp < block.timestamp,
+            "ERC20VotesTimestamp: block not yet mined"
+        );
         return _checkpointsLookup(_checkpoints[account], timestamp);
     }
 
     /**
-     * @dev Retrieve the `totalSupply` at the end of the block containing the timestamp `timestamp`. Note, this
-     * value is the sum of all balances.
-     * It is but NOT the sum of all the delegated votes!
+     * @dev Retrieve the `totalSupply` at the end of the block containing the timestamp `timestamp`.
+     * @notice this value is the sum of all balances. It is but NOT the sum of all the delegated votes!
      *
      * Requirements:
-     *
      * - the block with the timestamp `timestamp` must have been already mined
      */
-    function getPastTotalSupply(uint256 timestamp) public view virtual override returns (uint256) {
-        require(timestamp < block.timestamp, "ERC20VotesTimestamp: block not yet mined");
+    function getPastTotalSupply(uint256 timestamp)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        require(
+            timestamp < block.timestamp,
+            "ERC20VotesTimestamp: block not yet mined"
+        );
         return _checkpointsLookup(_totalSupplyCheckpoints, timestamp);
     }
 
     /**
      * @dev Lookup a value in a list of (sorted) checkpoints.
      */
-    function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 timestamp) private view returns (uint256) {
+    function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 timestamp)
+        private
+        view
+        returns (uint256)
+    {
         // We run a binary search to look for the earliest checkpoint taken after `timestamp`.
         //
         // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
@@ -151,14 +183,24 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         bytes32 r,
         bytes32 s
     ) public virtual override {
-        require(block.timestamp <= expiry, "ERC20VotesTimestamp: signature expired");
+        require(
+            block.timestamp <= expiry,
+            "ERC20VotesTimestamp: signature expired"
+        );
         address signer = ECDSA.recover(
-            _hashTypedDataV4(keccak256(abi.encode(_DELEGATION_TYPEHASH, delegatee, nonce, expiry))),
+            _hashTypedDataV4(
+                keccak256(
+                    abi.encode(_DELEGATION_TYPEHASH, delegatee, nonce, expiry)
+                )
+            ),
             v,
             r,
             s
         );
-        require(nonce == _useNonce(signer), "ERC20VotesTimestamp: invalid nonce");
+        require(
+            nonce == _useNonce(signer),
+            "ERC20VotesTimestamp: invalid nonce"
+        );
         _delegate(signer, delegatee);
     }
 
@@ -174,9 +216,10 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
      */
     function _mint(address account, uint256 amount) internal virtual override {
         super._mint(account, amount);
-        require(totalSupply() <= _maxSupply(), "ERC20VotesTimestamp: total supply risks overflowing votes");
-
-        _minter = account;
+        require(
+            totalSupply() <= _maxSupply(),
+            "ERC20VotesTimestamp: total supply risks overflowing votes"
+        );
 
         _writeCheckpoint(_totalSupplyCheckpoints, _add, amount);
     }
@@ -190,24 +233,6 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         _writeCheckpoint(_totalSupplyCheckpoints, _subtract, amount);
     }
 
-    /**
-     * @dev Move voting power when tokens are transferred.
-     *
-     * Emits a {DelegateVotesChanged} event.
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal virtual override {
-        super._beforeTokenTransfer(from, to, amount);
-
-        if (_nontransferable) {
-            require(from == _minter || allowance(_minter, from) > 0 || from == address(0),
-                "ERC20VotesTimestamp: token is non-transferable unless from minter or an address approved by the minter");
-        }
-    }
-    
     /**
      * @dev Move voting power when tokens are transferred.
      *
@@ -245,12 +270,20 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
     ) private {
         if (src != dst && amount > 0) {
             if (src != address(0)) {
-                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
+                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(
+                    _checkpoints[src],
+                    _subtract,
+                    amount
+                );
                 emit DelegateVotesChanged(src, oldWeight, newWeight);
             }
 
             if (dst != address(0)) {
-                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(
+                    _checkpoints[dst],
+                    _add,
+                    amount
+                );
                 emit DelegateVotesChanged(dst, oldWeight, newWeight);
             }
         }
@@ -268,7 +301,12 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         if (pos > 0 && ckpts[pos - 1].fromTimestamp == block.timestamp) {
             ckpts[pos - 1].votes = SafeCast.toUint224(newWeight);
         } else {
-            ckpts.push(Checkpoint({fromTimestamp: block.timestamp, votes: SafeCast.toUint224(newWeight)}));
+            ckpts.push(
+                Checkpoint({
+                    fromTimestamp: block.timestamp,
+                    votes: SafeCast.toUint224(newWeight)
+                })
+            );
         }
     }
 
