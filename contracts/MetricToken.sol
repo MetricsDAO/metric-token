@@ -150,6 +150,23 @@ contract MetricToken is
         orbitLookup[_chainId] = _orbit;
     }
 
+    /**
+     * @dev Call multiple functions at once.
+     * @notice This function is not payable because it is intended as a non-payable function.
+     * @param _data The data to call.
+     * @return results The results of the calls.
+     */
+    function multicall(bytes[] calldata _data)
+        external
+        virtual
+        returns (bytes[] memory results)
+    {
+        results = new bytes[](_data.length);
+        for (uint256 i; i < _data.length; i++) {
+            results[i] = _selfCall(_data[i]);
+        }
+    }
+
     ////////////////////////////////////////////////////
     ///               INTERNAL SETTERS               ///
     ////////////////////////////////////////////////////
@@ -168,6 +185,23 @@ contract MetricToken is
 
         /// @dev mint the tokens back into existence on destination chain.
         _mint(to, amount);
+    }
+
+    /**
+     * @dev Call a function on this contract.
+     * @param _data The data to call.
+     * @return result The result of the call.
+     */
+    function _selfCall(bytes memory _data) internal returns (bytes memory) {
+        (bool success, bytes memory result) = address(this).delegatecall(_data);
+        if (!success) {
+            if (result.length < 68) revert("");
+            assembly {
+                result := add(result, 0x04)
+            }
+            revert(abi.decode(result, (string)));
+        }
+        return result;
     }
 
     /**

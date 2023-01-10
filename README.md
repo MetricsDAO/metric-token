@@ -4,6 +4,6 @@
 
 Todo:
 - [ ] Community feedback/response implementation.
-- [ ] Multicall implementation.
+- [x] Multicall implementation.
 - [ ] Contract tests.
 - [ ] Proper README.
