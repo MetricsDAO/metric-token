@@ -136,7 +136,7 @@ contract MetricToken is
     }
 
     /**
-     * @dev Allows MetricsDAO to being operating on new chains.
+     * @dev Allows MetricsDAO to begin operating on new chains.
      * @notice This functionality allows the DAO and protocol to grow with the ecosystem, and go where
      *         not only the users are, but what the chain is designed for. The needs of today, will not
      *         be the needs of tomorrow.
