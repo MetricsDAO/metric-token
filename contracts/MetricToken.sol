@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 
 /// @dev Core dependencies.
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 /// @dev DAO Operations dependencies.
 import {ERC20VotesTimestamp} from "./extensions/ERC20VotesTimestamp.sol";
@@ -22,12 +23,13 @@ import {ILayerZeroEndpoint} from "./interfaces/ILayerZeroEndpoint.sol";
  * @author @nftchance*
  */
 contract MetricToken is
+    ERC20,
     ERC20VotesTimestamp,
     NonBlockingReceiver
 {
-    /// @dev The max amount of tokens that can be minted.
-    /// @notice 1,000,000,000 tokens minted to the deployer.
-    uint256 public constant maxSupply = 1000000000000000000000000000;
+    ////////////////////////////////////////////////////
+    ///                    STATE                     ///
+    ////////////////////////////////////////////////////
 
     /// @dev The version of LayerZero being utilized.
     uint256 public constant layerZeroVersion = 1;
@@ -45,17 +47,17 @@ contract MetricToken is
 
     ////////////////////////////////////////////////////
     ///                 CONSTRUCTOR                  ///
-    ////////////////////¡¡////////////////////////////////
+    ////////////////////////////////////////////////////
 
     constructor(
         string memory _name,
         string memory _symbol,
-        bool _psuedonymBound,
+        uint256 _maxSupply,
         address _layerZeroEndpoint
     )
         /// @dev Initialize all the dependencies
         ERC20(_name, _symbol)
-        ERC20Permit(_name)
+        ERC20VotesTimestamp(_name, _maxSupply)
     {
         /// @dev Mint the total supply of tokens to the deployer.
         _mint(_msgSender(), maxSupply);
@@ -198,17 +200,6 @@ contract MetricToken is
             revert(abi.decode(result, (string)));
         }
         return result;
-    }
-
-    /**
-     * See {ERC20VotesTimestamp-_beforeTokenTransfer}.
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal override(ERC20, ERC20VotesTimestamp) {
-        ERC20VotesTimestamp._beforeTokenTransfer(from, to, amount);
     }
 
     /**

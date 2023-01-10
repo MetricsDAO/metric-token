@@ -3,8 +3,8 @@
 pragma solidity ^0.8.0;
 
 /// @dev Core dependencies.
-import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import {IERC20VotesTimestamp} from "../interfaces/IERC20VotesTimestamp.sol";
+import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 /// @dev Helpers.
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -30,12 +30,42 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         uint224 votes;
     }
 
+    ////////////////////////////////////////////////////
+    ///                    STATE                     ///
+    ////////////////////////////////////////////////////
+
+    /// @dev The EIP-712 typehash for delegation under the contract's domain.
     bytes32 private constant _DELEGATION_TYPEHASH =
         keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
 
-    mapping(address => address) private _delegates;
-    mapping(address => Checkpoint[]) private _checkpoints;
+    /// @dev The max amount of tokens that can be in circulation.
+    uint256 public immutable maxSupply;
+
+    /// @dev The total number of checkpoints for the supply of tokens.
     Checkpoint[] private _totalSupplyCheckpoints;
+
+    /// @dev The address of the account which currently has administrative capabilities over this contract.
+    mapping(address => address) private _delegates;
+
+    /// @dev The voting checkpoints for each account, by index.
+    mapping(address => Checkpoint[]) private _checkpoints;
+
+    ////////////////////////////////////////////////////
+    ///                 CONSTRUCTOR                  ///
+    ////////////////////////////////////////////////////
+
+    constructor(string memory _name, uint256 _maxSupply) ERC20Permit(_name) {
+        require(
+            _maxSupply < type(uint224).max, 
+            "ERC20VotesTimestamp: supply cap exceeded"
+        );
+
+        maxSupply = _maxSupply;
+    }
+
+    ////////////////////////////////////////////////////
+    ///                   GETTERS                    ///
+    ////////////////////////////////////////////////////
 
     /**
      * @dev Get the `pos`-th checkpoint for `account`.
@@ -90,9 +120,6 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
 
     /**
      * @dev Retrieve the number of votes for `account` at the end of `timestamp`.
-     *
-     * Requirements:
-     * - the block with the timestamp `timestamp` must have been already mined
      */
     function getPastVotes(address account, uint256 timestamp)
         public
@@ -111,9 +138,6 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
     /**
      * @dev Retrieve the `totalSupply` at the end of the block containing the timestamp `timestamp`.
      * @notice this value is the sum of all balances. It is but NOT the sum of all the delegated votes!
-     *
-     * Requirements:
-     * - the block with the timestamp `timestamp` must have been already mined
      */
     function getPastTotalSupply(uint256 timestamp)
         public
@@ -129,6 +153,10 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         return _checkpointsLookup(_totalSupplyCheckpoints, timestamp);
     }
 
+    ////////////////////////////////////////////////////
+    ///               INTERNAL SETTERS               ///
+    ////////////////////////////////////////////////////
+
     /**
      * @dev Lookup a value in a list of (sorted) checkpoints.
      */
@@ -137,26 +165,19 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
         view
         returns (uint256)
     {
-        // We run a binary search to look for the earliest checkpoint taken after `timestamp`.
-        //
-        // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
-        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
-        // - If the middle checkpoint is after `timestamp`, we look in [low, mid)
-        // - If the middle checkpoint is before or equal to `timestamp`, we look in [mid+1, high)
-        // Once we reach a single value (when low == high), we've found the right checkpoint at the index high-1, if not
-        // out of bounds (in which case we're looking too far in the past and the result is 0).
-        // Note that if the latest checkpoint available is exactly for `timestamp`, we end up with an index that is
-        // past the end of the array, so we technically don't find a checkpoint after `timestamp`, but it works out
-        // the same.
         uint256 high = ckpts.length;
-        uint256 low = 0;
+        uint256 low;
+        uint256 mid;
+
         while (low < high) {
-            uint256 mid = Math.average(low, high);
+            mid = Math.average(low, high);
+
             if (ckpts[mid].fromTimestamp > timestamp) {
                 high = mid;
-            } else {
-                low = mid + 1;
+                break;
             }
+
+            low = mid + 1;
         }
 
         return high == 0 ? 0 : ckpts[high - 1].votes;
@@ -184,6 +205,7 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
             block.timestamp <= expiry,
             "ERC20VotesTimestamp: signature expired"
         );
+
         address signer = ECDSA.recover(
             _hashTypedDataV4(
                 keccak256(
@@ -194,18 +216,13 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
             r,
             s
         );
+
         require(
             nonce == _useNonce(signer),
             "ERC20VotesTimestamp: invalid nonce"
         );
+        
         _delegate(signer, delegatee);
-    }
-
-    /**
-     * @dev Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1).
-     */
-    function _maxSupply() internal view virtual returns (uint224) {
-        return type(uint224).max;
     }
 
     /**
@@ -213,9 +230,12 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
      */
     function _mint(address account, uint256 amount) internal virtual override {
         super._mint(account, amount);
+
+        /// @dev This requirement is multi-function as it will prevent over-minting
+        ///      as well as overflows for the voting process.
         require(
-            totalSupply() <= _maxSupply(),
-            "ERC20VotesTimestamp: total supply risks overflowing votes"
+            totalSupply() <= maxSupply,
+            "ERC20VotesTimestamp: total supply would exceed max supply"
         );
 
         _writeCheckpoint(_totalSupplyCheckpoints, _add, amount);
@@ -232,8 +252,6 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
 
     /**
      * @dev Move voting power when tokens are transferred.
-     *
-     * Emits a {DelegateVotesChanged} event.
      */
     function _afterTokenTransfer(
         address from,
@@ -247,8 +265,6 @@ abstract contract ERC20VotesTimestamp is IERC20VotesTimestamp, ERC20Permit {
 
     /**
      * @dev Change delegation for `delegator` to `delegatee`.
-     *
-     * Emits events {DelegateChanged} and {DelegateVotesChanged}.
      */
     function _delegate(address delegator, address delegatee) internal virtual {
         address currentDelegate = delegates(delegator);
