@@ -5,9 +5,13 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 
+// Mocks: 
+// - https://github.com/LayerZero-Labs/solidity-examples/blob/main/test/contracts/oft/OFT.test.js
+// - https://github.com/LayerZero-Labs/solidity-examples/blob/8f9b16b40eabebd7207d6e6ec402c742addff452/contracts/mocks/LZEndpointMock.sol
+
 describe("MetricToken", function () {
   async function deployMetricTokenFixture() {
-    // TODO: Add the layerZeroEndpoint. (I am not sure how to do this yet.)
+    // TODO: Add the layerZeroEndpoint.
     const layerZeroEndpoint = "";
 
     const name = "Metric Token";
