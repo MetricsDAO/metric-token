@@ -4,10 +4,10 @@ pragma solidity ^0.8.17;
 
 /// @dev Core dependencies.
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ILayerZeroReceiver} from "./interfaces/ILayerZeroReceiver.sol";
+import {ILayerZeroReceiver} from "../interfaces/ILayerZeroReceiver.sol";
 
 /// @dev Helpers.
-import {ILayerZeroEndpoint} from "./interfaces/ILayerZeroEndpoint.sol";
+import {ILayerZeroEndpoint} from "../interfaces/ILayerZeroEndpoint.sol";
 
 abstract contract NonBlockingReceiver is Ownable, ILayerZeroReceiver {
     ////////////////////////////////////////////////////
