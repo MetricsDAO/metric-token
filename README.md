@@ -1,13 +1,9 @@
-# Sample Hardhat Project
+# In Development: Omni-Chain $METRIC
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+> Warning: This is not completed and has many loose ends as well as no tests. An active WIP for the amazing, MetricsDAO.
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+Todo:
+- [ ] Community feedback/response implementation.
+- [ ] Multicall implementation.
+- [ ] Contract tests.
+- [ ] Proper README.
