@@ -37,7 +37,7 @@ task("deploy", "Deploys $METRIC to the network")
     const chainId = await getChainId()
     console.log('✅ Connected to chain ' + chainId)
 
-    const layerZeroDecimals = 10
+    const layerZeroDecimals = 5
     const layerZeroEndpoint = '0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675'
 
     const MetricToken = await ethers.getContractFactory("MetricToken");
@@ -95,7 +95,7 @@ module.exports = {
   gasReporter: {
     enabled: true,
     currency: 'USD',
-    gasPrice: 20,
+    gasPrice: 67,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     showMethodSig: true,
     showTimeSpent: true,
@@ -116,7 +116,7 @@ module.exports = {
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ETH_ALCHEMY_KEY}`,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 30000000000,
+      gasPrice: 60000000000,
       allowUnlimitedContractSize: true
     }
   }
