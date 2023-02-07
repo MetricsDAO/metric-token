@@ -21,7 +21,7 @@ contract MetricToken is BaseOFTV2, ERC20, ERC20Permit, ERC20Votes {
     ////////////////////////////////////////////////////
 
     /// @dev Hard-set maximum amount of $METRIC that will exist.
-    uint256 public constant mintSupply = 1000000000;
+    uint256 public constant mintSupply = 1000000000 * 1e18;
 
     /// @dev Rate of converion conversion for LayerZero.
     uint256 internal immutable ld2sdRate;

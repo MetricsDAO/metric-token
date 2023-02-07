@@ -4,6 +4,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
 require("hardhat-gas-reporter");
+require('hardhat-contract-sizer');
 
 require("dotenv").config();
 
@@ -81,7 +82,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 1000000
+            runs: 10000
           }
         }
       }
@@ -100,6 +101,11 @@ module.exports = {
     showMethodSig: true,
     showTimeSpent: true,
   },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: true,
+    runOnCompile: true,
+  },
   networks: {
     hardhat: {
       chainId: 1337,
@@ -116,7 +122,7 @@ module.exports = {
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ETH_ALCHEMY_KEY}`,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 60000000000,
+      gasPrice: 50000000000,
       allowUnlimitedContractSize: true
     }
   }
