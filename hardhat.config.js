@@ -1,3 +1,5 @@
+const { task } = require("hardhat/config");
+
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
@@ -12,6 +14,17 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+
+task("increment", "Increments the nonce by 1")
+  .setAction(async (taskArgs, hre) => {
+    const [deployer] = await ethers.getSigners();
+    console.log(`✅ Connected to ${deployer.address}`);
+
+    console.log('✅ Incrementing nonce by 1')
+    await deployer.sendTransaction({ to: deployer.address, value: 0 })
+
+    console.log('✅ Done')
+  });
 
 task("deploy", "Deploys $METRIC to the network")
   .addOptionalParam("verify", "Verify the deployed contracts on Etherscan", false, types.boolean)
@@ -29,7 +42,7 @@ task("deploy", "Deploys $METRIC to the network")
 
     const MetricToken = await ethers.getContractFactory("MetricToken");
     let metricToken = await MetricToken.deploy(
-      "Metric Token",
+      "Metric",
       "METRIC",
       layerZeroDecimals,
       layerZeroEndpoint
@@ -49,10 +62,15 @@ task("deploy", "Deploys $METRIC to the network")
     await new Promise(r => setTimeout(r, 30000));
     await hre.run("verify:verify", {
       address: metricToken.address,
-      constructorArguments: [],
+      constructorArguments: [
+        "Metric Token",
+        "METRIC",
+        layerZeroDecimals,
+        layerZeroEndpoint
+      ],
     });
-    console.log("✅ MetricToken verified.")
 
+    console.log("✅ MetricToken verified.")
   });
 
 module.exports = {

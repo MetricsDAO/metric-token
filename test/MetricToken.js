@@ -5,9 +5,8 @@ describe("MetricToken", function () {
   async function deployMetricTokenFixture() {
     const layerZeroDecimals = 10
 
-    const name = "Metric Token";
+    const name = "Metric";
     const symbol = "METRIC";
-    const psuedonymBound = false;
 
     const [owner, otherAccount] = await ethers.getSigners();
 
@@ -22,7 +21,6 @@ describe("MetricToken", function () {
       metricToken,
       name,
       symbol,
-      psuedonymBound,
       owner,
       otherAccount
     };
