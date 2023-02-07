@@ -30,10 +30,12 @@ describe("MetricToken", function () {
 
   describe("Deployment", function () {
     it("Should deploy properly.", async function () {
-      const { metricToken, name, symbol } = await loadFixture(deployMetricTokenFixture);
+      const { metricToken, name, symbol, owner } = await loadFixture(deployMetricTokenFixture);
 
       expect(await metricToken.name()).to.equal(name);
       expect(await metricToken.symbol()).to.equal(symbol);
+
+      expect(await metricToken.owner()).to.equal(owner.address);
 
       // Commented out because it only mints on mainnet.
       // expect(await metricToken.totalSupply()).to.equal(1000000000);
