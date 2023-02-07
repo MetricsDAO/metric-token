@@ -54,7 +54,7 @@ contract MetricToken is BaseOFTV2, ERC20, ERC20Permit, ERC20Votes {
         ld2sdRate = 10**(tokenDecimals - _sharedDecimals);
 
         /// @dev If we are on mainnet, mint the initial supply to the deployer.
-        if(block.chainid == 1) _mint(_msgSender(), mintSupply);
+        if (block.chainid == 1) _mint(_msgSender(), mintSupply);
     }
 
     ////////////////////////////////////////////////////

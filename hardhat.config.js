@@ -83,10 +83,23 @@ module.exports = {
     showTimeSpent: true,
   },
   networks: {
+    hardhat: {
+      chainId: 1337,
+      gas: "auto",
+      gasPrice: "auto",
+      saveDeployments: false,
+      mining: {
+        auto: false,
+        order: 'fifo',
+        interval: 1500,
+      },
+      allowUnlimitedContractSize: true
+    },
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ETH_ALCHEMY_KEY}`,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 30000000000,
+      allowUnlimitedContractSize: true
     }
   }
 };
