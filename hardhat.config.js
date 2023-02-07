@@ -63,7 +63,7 @@ task("deploy", "Deploys $METRIC to the network")
     await hre.run("verify:verify", {
       address: metricToken.address,
       constructorArguments: [
-        "Metric Token",
+        "Metric",
         "METRIC",
         layerZeroDecimals,
         layerZeroEndpoint
