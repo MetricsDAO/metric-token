@@ -31,7 +31,6 @@ task("deploy", "Deploys $METRIC to the network")
     let metricToken = await MetricToken.deploy(
       "Metric Token",
       "METRIC",
-      18,
       layerZeroDecimals,
       layerZeroEndpoint
     );
