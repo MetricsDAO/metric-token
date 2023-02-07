@@ -24,7 +24,7 @@ task("deploy", "Deploys $METRIC to the network")
     const chainId = await getChainId()
     console.log('✅ Connected to chain ' + chainId)
 
-    const layerZeroDecimals = 5
+    const layerZeroDecimals = 10
     const layerZeroEndpoint = '0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675'
 
     const MetricToken = await ethers.getContractFactory("MetricToken");
