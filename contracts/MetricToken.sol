@@ -20,6 +20,10 @@ contract MetricToken is BaseOFTV2, ERC20, ERC20Permit, ERC20Votes {
     ///                    STATE                     ///
     ////////////////////////////////////////////////////
 
+    /// @dev Hard-set maximum amount of $METRIC that will exist.
+    uint256 public constant mintSupply = 1000000000;
+
+    /// @dev Rate of converion conversion for LayerZero.
     uint256 internal immutable ld2sdRate;
 
     ////////////////////////////////////////////////////
@@ -29,7 +33,6 @@ contract MetricToken is BaseOFTV2, ERC20, ERC20Permit, ERC20Votes {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint256 _mintSupply,
         uint8 _sharedDecimals,
         address _layerZeroEndpoint
     )
@@ -50,8 +53,8 @@ contract MetricToken is BaseOFTV2, ERC20, ERC20Permit, ERC20Votes {
         /// @dev Calculate the ld2sdRate.
         ld2sdRate = 10**(tokenDecimals - _sharedDecimals);
 
-        /// @dev Mint the total supply of tokens to the deployer.
-        _mint(_msgSender(), _mintSupply);
+        /// @dev If we are on mainnet, mint the initial supply to the deployer.
+        if(block.chainid == 1) _mint(_msgSender(), mintSupply);
     }
 
     ////////////////////////////////////////////////////
